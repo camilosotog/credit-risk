@@ -1,0 +1,60 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Entrenar Modelo de Riesgo Crediticio",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"src/models/train_model.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Ejecutar API REST",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"api/app.py"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Procesar Datos",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"src/data/load_data.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "Ejecutar Dashboard Streamlit",
+			"type": "shell",
+			"command": "streamlit run",
+			"args": [
+				"dashboard/app.py"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "test"
+		},
+		{
+			"label": "Ejecutar Tests",
+			"type": "shell",
+			"command": "python",
+			"args": [
+				"tests/test_models.py"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}

@@ -1,0 +1,77 @@
+|# Dependencias principales para análisis de datos y ML
+pandas>=1.5.3
+numpy>=1.21.0
+scikit-learn>=1.2.0
+xgboost>=1.7.0
+lightgbm>=3.3.0
+
+# Visualización
+matplotlib>=3.5.0
+seaborn>=0.11.0
+plotly>=5.0.0
+
+# Jupyter y notebooks
+jupyter>=1.0.0
+jupyterlab>=3.0.0
+ipykernel>=6.0.0
+nbformat>=5.0.0
+
+# API y web framework
+flask==3.0.0
+flask-cors==4.0.0
+fastapi==0.104.1
+uvicorn==0.24.0
+pydantic==2.5.2
+
+# Dashboard
+streamlit==1.29.0
+streamlit-aggrid==0.3.4.post3
+streamlit-option-menu==0.3.6
+
+# Métricas y evaluación
+imbalanced-learn==0.11.0
+shap==0.44.0
+lime==0.2.0.1
+
+# Utilidades para datos
+openpyxl==3.1.2
+xlsxwriter==3.1.9
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+
+# Calidad de código
+black==23.11.0
+flake8==6.1.0
+isort==5.12.0
+
+# Logging y monitoreo
+loguru==0.7.2
+tqdm==4.66.1
+
+# Serialización de modelos
+joblib==1.3.2
+pickle5==0.0.12
+
+# Validación de datos
+great-expectations==0.18.5
+pandera==0.17.2
+
+# Base de datos (opcional)
+sqlalchemy==2.0.23
+pymongo==4.6.0
+
+# Deploy y contenedores
+gunicorn==21.2.0
+python-multipart==0.0.6
+
+# Utilidades adicionales
+requests==2.31.0
+python-dateutil==2.8.2
+pytz==2023.3
+
+# Específico para Windows
+pywin32==306; sys_platform == "win32"
