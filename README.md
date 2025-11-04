@@ -243,3 +243,5 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## Ejecutar
 streamlit run dashboard/app.py --server.port 8502
+
+streamlit run dashboard_final.py --server.port 8506

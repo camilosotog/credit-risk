@@ -134,11 +134,12 @@ def preprocess_input(data: Dict[str, Any]) -> pd.DataFrame:
         # Seleccionar solo las características que el modelo espera
         df = df.reindex(columns=required_features, fill_value=0)
         
-        # Aplicar escalado si existe scaler
+        # Aplicar escalado si existe scaler manteniendo nombres de columnas
         scaler = model_data.get('scaler')
         if scaler:
             df_scaled = scaler.transform(df)
-            df = pd.DataFrame(df_scaled, columns=required_features)
+            # IMPORTANTE: Mantener nombres de columnas después del escalado
+            df = pd.DataFrame(df_scaled, columns=required_features, index=df.index)
         
         return df
         

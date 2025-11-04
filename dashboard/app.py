@@ -156,14 +156,16 @@ def make_prediction_local(customer_data):
         # Ordenar columnas según el entrenamiento
         input_data = input_data[feature_names]
         
-        # Escalar si hay scaler
+        # Escalar manteniendo DataFrame
         if scaler:
             input_data_scaled = scaler.transform(input_data)
+            # MANTENER nombres de columnas después del escalado
+            input_df_scaled = pd.DataFrame(input_data_scaled, columns=feature_names, index=input_data.index)
         else:
-            input_data_scaled = input_data.values
+            input_df_scaled = input_data
         
-        # Hacer predicción real
-        prediction_prob = model.predict_proba(input_data_scaled)[0, 1]
+        # Hacer predicción real con DataFrame
+        prediction_prob = model.predict_proba(input_df_scaled)[0, 1]
         prediction_class = int(prediction_prob > 0.5)
         
         return {

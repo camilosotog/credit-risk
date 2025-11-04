@@ -9,6 +9,13 @@ import pandas as pd
 import joblib
 from pathlib import Path
 import logging
+import sys
+import os
+
+# Agregar el directorio raíz al path
+sys.path.append(os.path.join(os.path.dirname(__file__), '.'))
+
+from src.utils.model_utils import load_model_safely, predict_with_model
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,13 +52,11 @@ def test_model_prediction():
         return False
     
     try:
-        model_data = joblib.load(model_path)
-        model = model_data['model']
-        scaler = model_data.get('scaler')
-        feature_names = model_data.get('feature_names', [])
+        # Usar utilidad segura para cargar modelo
+        predictor = load_model_safely(model_path)
         
-        logger.info(f"✅ Modelo cargado: {model_data.get('model_name', 'Random Forest')}")
-        logger.info(f"✅ Características: {len(feature_names)}")
+        logger.info(f"✅ Modelo cargado correctamente")
+        logger.info(f"✅ Características: {len(predictor.feature_names)}")
         
         # Crear datos de prueba
         test_data = {
@@ -68,24 +73,9 @@ def test_model_prediction():
             'limit_to_income_ratio': 1.2
         }
         
-        # Preparar datos
-        input_df = pd.DataFrame([test_data])
-        
-        # Asegurar que tenemos todas las características
-        for feature in feature_names:
-            if feature not in input_df.columns:
-                input_df[feature] = 0
-        
-        input_df = input_df[feature_names]
-        
-        # Escalar
-        if scaler:
-            input_scaled = scaler.transform(input_df)
-        else:
-            input_scaled = input_df.values
-        
-        # Predecir
-        prob = model.predict_proba(input_scaled)[0, 1]
+        # Hacer predicción segura (sin warnings)
+        prob_array = predictor.predict_proba(test_data)
+        prob = prob_array[0, 1]
         pred_class = int(prob > 0.5)
         
         logger.info(f"✅ Predicción exitosa:")
