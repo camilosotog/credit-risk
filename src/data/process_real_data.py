@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 def analyze_real_dataset():
     """Analizar el dataset real de créditos."""
     
-    # Cargar los datos
-    data_path = RAW_DATA_DIR / 'DataCreditos_baland.csv'
+    # Cargar los datos - AHORA USANDO docs/DataCreditos.csv
+    data_path = Path('docs/DataCreditos.csv')
     
     if not data_path.exists():
         logger.error(f"Dataset no encontrado en: {data_path}")
@@ -32,6 +32,11 @@ def analyze_real_dataset():
     
     logger.info(f"Cargando dataset desde: {data_path}")
     df = pd.read_csv(data_path)
+    
+    # FILTRAR SOLO VIABILIDADES 1 (APROBADO) Y 4 (RECHAZADO)
+    logger.info(f"Total de registros antes de filtrar: {len(df):,}")
+    df = df[df['Viabilidad'].isin([1, 4])].copy()
+    logger.info(f"✅ Registros filtrados (Viabilidad 1 y 4): {len(df):,}")
     
     # Análisis básico
     logger.info("="*60)
@@ -124,6 +129,15 @@ def preprocess_real_data(df):
     
     df_processed = df.copy()
     
+    # Los valores ya están en escala real (no logarítmica)
+    logger.info("Verificando rangos de valores monetarios...")
+    
+    if 'invoice_value' in df_processed.columns:
+        logger.info(f"  invoice_value: Rango [${df_processed['invoice_value'].min():,.0f}, ${df_processed['invoice_value'].max():,.0f}]")
+    
+    if 'approved_limit' in df_processed.columns:
+        logger.info(f"  approved_limit: Rango [${df_processed['approved_limit'].min():,.0f}, ${df_processed['approved_limit'].max():,.0f}]")
+    
     # Convertir tipos de datos
     logger.info("Convirtiendo tipos de datos...")
     
@@ -133,15 +147,10 @@ def preprocess_real_data(df):
         if col in df_processed.columns:
             df_processed[col] = pd.to_numeric(df_processed[col], errors='coerce')
     
-    # Variables categóricas
-    categorical_columns = ['gender', 'housing_status', 'has_disability']
-    for col in categorical_columns:
-        if col in df_processed.columns:
-            df_processed[col] = df_processed[col].astype('category')
-    
-    # Crear características adicionales
+    # Crear características adicionales ANTES de convertir a categórica
     logger.info("Creando características adicionales...")
     
+    # === CARACTERÍSTICAS BÁSICAS ===
     # Ratio de factura a ingresos
     if 'invoice_value' in df_processed.columns and 'income' in df_processed.columns:
         df_processed['invoice_to_income_ratio'] = df_processed['invoice_value'] / (df_processed['income'] + 1)
@@ -149,6 +158,44 @@ def preprocess_real_data(df):
     # Ratio de límite aprobado a ingresos
     if 'approved_limit' in df_processed.columns and 'income' in df_processed.columns:
         df_processed['limit_to_income_ratio'] = df_processed['approved_limit'] / (df_processed['income'] + 1)
+    
+    # === NUEVAS CARACTERÍSTICAS AVANZADAS ===
+    logger.info("Creando características avanzadas para mejorar precisión...")
+    
+    # 1. Ingreso per cápita (ingreso por persona en el hogar)
+    if 'income' in df_processed.columns and 'dependents' in df_processed.columns:
+        df_processed['income_per_capita'] = df_processed['income'] / (df_processed['dependents'] + 1)
+    
+    # 2. Score de estabilidad (edad * estrato)
+    if 'age' in df_processed.columns and 'socioeconomic_level' in df_processed.columns:
+        df_processed['stability_score'] = df_processed['age'] * df_processed['socioeconomic_level']
+    
+    # 3. Carga financiera (factura relativa al ingreso per cápita)
+    if 'invoice_value' in df_processed.columns and 'income_per_capita' in df_processed.columns:
+        df_processed['financial_burden'] = df_processed['invoice_value'] / (df_processed['income_per_capita'] + 1)
+    
+    # 4. Indicador de riesgo de edad (jóvenes y muy mayores son más riesgosos)
+    if 'age' in df_processed.columns:
+        df_processed['age_risk'] = df_processed['age'].apply(
+            lambda x: 1 if x < 25 or x > 65 else 0
+        )
+    
+    # 5. Capacidad de pago (ingresos menos factura)
+    if 'income' in df_processed.columns and 'invoice_value' in df_processed.columns:
+        df_processed['payment_capacity'] = df_processed['income'] - df_processed['invoice_value']
+        df_processed['payment_capacity'] = df_processed['payment_capacity'].clip(lower=0)
+    
+    # 6. Score combinado estrato-vivienda
+    if 'socioeconomic_level' in df_processed.columns and 'housing_status' in df_processed.columns:
+        df_processed['socio_housing_score'] = df_processed['socioeconomic_level'] * (df_processed['housing_status'] + 1)
+    
+    # 7. Logaritmo del ingreso (para normalizar distribución)
+    if 'income' in df_processed.columns:
+        df_processed['log_income'] = np.log1p(df_processed['income'])
+    
+    # 8. Logaritmo del valor factura
+    if 'invoice_value' in df_processed.columns:
+        df_processed['log_invoice'] = np.log1p(df_processed['invoice_value'])
     
     # Categorías de edad
     if 'age' in df_processed.columns:
@@ -163,16 +210,29 @@ def preprocess_real_data(df):
         df_processed['income_category'] = pd.qcut(
             df_processed['income'],
             q=5,
-            labels=['Muy Bajo', 'Bajo', 'Medio', 'Alto', 'Muy Alto']
+            labels=['Muy Bajo', 'Bajo', 'Medio', 'Alto', 'Muy Alto'],
+            duplicates='drop'
         )
+    
+    logger.info(f"✅ Características avanzadas creadas: 8 nuevas variables")
+    
+    # AHORA sí convertir variables categóricas (después de crear features)
+    categorical_columns = ['gender', 'housing_status', 'has_disability']
+    for col in categorical_columns:
+        if col in df_processed.columns:
+            df_processed[col] = df_processed[col].astype('category')
     
     # Crear variable objetivo binaria
     if 'target' in df_processed.columns:
-        # Mapear Viabilidad a variable binaria (1 = riesgo, 0 = no riesgo)
-        # Asumiendo que Viabilidad 1 es bueno, 4 es malo
+        # Mapear Viabilidad a variable binaria
+        # Viabilidad 1 = APROBADO (bajo riesgo) -> default=0
+        # Viabilidad 4 = RECHAZADO (alto riesgo) -> default=1
         df_processed['default'] = df_processed['target'].apply(
-            lambda x: 1 if x == 4 else 0  # 4 parece ser rechazo basado en los datos
+            lambda x: 1 if x == 4 else 0
         )
+        logger.info(f"✅ Variable objetivo creada:")
+        logger.info(f"   Viabilidad 1 (Aprobado) -> default=0: {(df_processed['default']==0).sum():,} casos")
+        logger.info(f"   Viabilidad 4 (Rechazado) -> default=1: {(df_processed['default']==1).sum():,} casos")
     
     logger.info(f"Datos procesados: {df_processed.shape}")
     logger.info(f"Nuevas características creadas: {len(df_processed.columns) - len(df.columns)}")

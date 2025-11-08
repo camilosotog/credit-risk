@@ -70,13 +70,29 @@ class RealCreditRiskModel:
         # Crear copia de trabajo
         df_work = df.copy()
         
-        # Seleccionar características principales
+        # Seleccionar características principales + NUEVAS CARACTERÍSTICAS AVANZADAS
+        # ⚠️ EXCLUIMOS 'approved_limit' y 'limit_to_income_ratio' para modelo independiente
         feature_columns = [
+            # Características básicas
             'age', 'income', 'socioeconomic_level', 'dependents',
             'gender', 'housing_status', 'has_disability',
-            'invoice_value', 'approved_limit',
-            'invoice_to_income_ratio', 'limit_to_income_ratio'
+            'invoice_value',
+            # Ratios básicos
+            'invoice_to_income_ratio',
+            # Nuevas características avanzadas
+            'income_per_capita',
+            'stability_score',
+            'financial_burden',
+            'age_risk',
+            'payment_capacity',
+            'socio_housing_score',
+            'log_income',
+            'log_invoice'
         ]
+        
+        logger.info("🚫 EXCLUYENDO: approved_limit y limit_to_income_ratio")
+        logger.info("✅ INCLUYENDO: 8 características avanzadas nuevas")
+        logger.info("   Modelo aprenderá sin depender del cupo aprobado")
         
         # Filtrar columnas que existen
         available_features = [col for col in feature_columns if col in df_work.columns]

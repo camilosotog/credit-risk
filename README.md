@@ -1,22 +1,45 @@
-# Sistema de Recomendación para Evaluación de Riesgos en Créditos
+# Sistema de Evaluación de Riesgo Crediticio con Machine Learning
 
 ![Python](https://img.shields.io/badge/python-v3.9+-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
+![XGBoost](https://img.shields.io/badge/XGBoost-99.29%25-success.svg)
+![Dataset](https://img.shields.io/badge/dataset-26,940%20records-blue.svg)
 
 ## Descripción
 
-Sistema de Machine Learning para evaluación automatizada de riesgo crediticio en Fintechs, utilizando modelos de aprendizaje automático para optimizar la toma de decisiones en originación de créditos.
+Sistema completo de Machine Learning para evaluación automatizada de riesgo crediticio, entrenado con **26,940 solicitudes reales** de crédito. Utiliza **XGBoost** con **99.29% de AUC-ROC** para clasificar solicitudes como aprobadas o rechazadas, optimizando la toma de decisiones en originación de créditos.
 
-## Características Principales
+## 🚀 Demo Rápida
 
-- 🔍 **Análisis Exploratorio de Datos (EDA)** completo
-- 🧹 **Preprocesamiento avanzado** de datos crediticios
-- 🤖 **Múltiples modelos de ML** (Logistic Regression, Random Forest, XGBoost, LightGBM)
-- 📊 **Métricas especializadas** para riesgo crediticio
-- 🌐 **API REST** para predicciones en tiempo real
-- 📈 **Dashboard interactivo** para visualización
-- 🧪 **Tests automatizados** y validación de modelos
-- 🐳 **Containerización** con Docker
+```powershell
+# 1. Entrenar el modelo
+python src/models/train_model_real.py
+
+# 2. Ejecutar dashboard
+streamlit run dashboard_final.py --server.port 8508
+```
+
+**Dashboard disponible en**: http://localhost:8508
+
+## 🏆 Rendimiento del Modelo
+
+**Modelo XGBoost entrenado con 26,940 registros:**
+
+- **AUC-ROC**: 99.29%
+- **Accuracy**: 97.62%
+- **Precision**: 97.16%
+- **Recall**: 98.69%
+- **F1-Score**: 97.92%
+
+## ✨ Características Principales
+
+- 🎯 **Modelo XGBoost** de alta precisión (99.29% AUC-ROC)
+- 📊 **Dataset real** con 26,940 solicitudes de crédito
+- 🔧 **9 variables parametrizables** en dashboard interactivo
+- 📈 **Visualización en tiempo real** de evaluaciones
+- ⚙️ **Sistema flexible** con activación/desactivación de variables
+- 🧪 **Validación cruzada** y tests automatizados
+- 🌐 **API REST** para integración
 
 ## Estructura del Proyecto
 
